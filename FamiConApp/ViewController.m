@@ -8,6 +8,7 @@
 
 #import "ViewController.h"
 #import <AZSocketIO.h>
+#import "SRWebSocket.h"
 
 #define OPERATION_UP 0
 #define OPERATION_LEFT 1
@@ -16,12 +17,12 @@
 #define OPERATION_A 4
 #define OPERATION_B 5
 
-@interface ViewController ()
+@interface ViewController () <SRWebSocketDelegate>
 
 @end
 
 @implementation ViewController {
-    AZSocketIO *_socketIO;
+    SRWebSocket *web_socket;
 }
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -38,18 +39,17 @@
 {
     [super viewDidLoad];
     // Do any additional setup after loading the view from its nib.
-    
-    _socketIO = [[AZSocketIO alloc] initWithHost:@"localhost" andPort:@"3000" secure:NO];
-    [_socketIO setEventRecievedBlock:^(NSString *eventName, id data) {
-        NSLog(@"%@ : %@", eventName, data);
-    }];
-    
-    [_socketIO connectWithSuccess:^{
-        [_socketIO emit:@"message" args:@"ios client connected!" error:nil];
-    } andFailure:^(NSError *error){
-        NSLog(@"Error : %@", error);
-    }];
-    
+    web_socket = [[SRWebSocket alloc] initWithURLRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"ws://change/to/host/name:port/"]]];
+    [web_socket setDelegate:self];
+    [web_socket open];
+}
+
+- (void)webSocketDidOpen:(SRWebSocket *)webSocket{
+
+}
+
+- (void)webSocket:(SRWebSocket *)webSocket didReceiveMessage:(id)message{
+
 }
 
 - (void)didReceiveMemoryWarning
@@ -63,9 +63,7 @@
     NSError *error = nil;
     if (sender.tag == tag) {
         NSLog(@"%@ Button clicked", operaion);
-        [_socketIO emit:@"operation" args:operaion error:&error];
-        if(error){
-        }
+        [web_socket send:operaion];
     }
     
 }
